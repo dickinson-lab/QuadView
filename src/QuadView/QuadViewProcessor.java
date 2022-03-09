@@ -52,7 +52,7 @@ public class QuadViewProcessor implements Processor {
    private final boolean keep_red_;
    private final boolean keep_farRed_;
    private final ArrayList<String> channelSuffixes_ = new ArrayList<String>(Arrays.asList(
-                                                                new String[] {"Blue", "Green", "Red", "FarRed"}));
+                                                                new String[] {"_Blue", "_Green", "_Red", "_FarRed"}));
 
    public QuadViewProcessor(Studio studio, boolean keep_blue, boolean keep_green, boolean keep_red, boolean keep_farRed) {
       studio_ = studio;
@@ -71,15 +71,58 @@ public class QuadViewProcessor implements Processor {
          return summary;
       }
       
-      // Need to fix channel naming in this section
-      String[] newNames = new String[chNames.size() * 4];
+      // Fix channel naming
+      String[] newNames = {};
+      int channelCounter = 0;
       for (int i = 0; i < chNames.size(); ++i) {
-         String base = summary.getSafeChannelName(i);
-         for (int j = 0; j < 4; ++j) {
-            newNames[i * 4 + j] = base + channelSuffixes_.get(j);
-         }
+          String base = summary.getSafeChannelName(i);
+          if (keep_blue_) {
+             newNames = Arrays.copyOf(newNames, newNames.length + 1);
+             newNames[newNames.length - 1] = base + channelSuffixes_.get(0);
+             channelCounter++;
+          }
+          if (keep_green_) {
+             newNames = Arrays.copyOf(newNames, newNames.length + 1);
+             newNames[newNames.length - 1] = base + channelSuffixes_.get(1);
+             channelCounter++;
+          }
+          if (keep_red_) {
+             newNames = Arrays.copyOf(newNames, newNames.length + 1);
+             newNames[newNames.length - 1] = base + channelSuffixes_.get(2);
+             channelCounter++;
+          }    
+          if (keep_farRed_) {
+             newNames = Arrays.copyOf(newNames, newNames.length + 1);
+             newNames[newNames.length - 1] = base + channelSuffixes_.get(3);
+             channelCounter++;
+          }
       }
-      return summary.copyBuilder().channelNames(newNames).build();
+      
+      // Calculate correct number of channels
+      int nCh_start = summary.getIntendedDimensions().getChannel();
+      int nCh_new = nCh_start * channelCounter;
+      Coords.Builder cb = studio_.data().coordsBuilder();
+      
+      // Fix axis order
+      List<String> orderedAxes = summary.getOrderedAxes();
+      List<String> newAxisOrder = new ArrayList<>();
+      if (!orderedAxes.get(0).equals("channel") ) {
+          newAxisOrder.add("channel");
+          for (int a = 0; a<=3; ++a) {
+             String nextAxis = orderedAxes.get(a);
+              if ( !nextAxis.equals("channel") ){
+                 newAxisOrder.add(nextAxis);
+              }    
+          }
+       } else {
+          newAxisOrder = orderedAxes;
+       }
+      
+       return summary.copyBuilder()
+                     .channelNames(newNames)
+                     .intendedDimensions(cb.channel(nCh_new).build())
+                     .axisOrder(newAxisOrder)
+                     .build();
    }
 
    @Override
