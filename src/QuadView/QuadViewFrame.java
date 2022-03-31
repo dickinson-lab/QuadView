@@ -44,6 +44,11 @@ import org.micromanager.data.ProcessorConfigurator;
 import org.micromanager.PropertyMap;
 import org.micromanager.PropertyMaps;
 import org.micromanager.Studio;
+import org.micromanager.data.internal.PropertyKey;
+import org.micromanager.display.ChannelDisplaySettings;
+import org.micromanager.display.DataViewer;
+import org.micromanager.display.DisplaySettings;
+import org.micromanager.display.internal.DefaultDisplaySettings;
 import org.micromanager.internal.utils.WindowPositioning;
 
 // Imports for MMStudio internal packages
@@ -240,6 +245,55 @@ public class QuadViewFrame extends JFrame implements ProcessorConfigurator {
             break;
          }
       }
+      //Update display settings
+      DisplaySettings dsTmp = DefaultDisplaySettings.restoreFromProfile(
+                                studio_.profile(), PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
+
+      if (dsTmp == null) {
+          dsTmp = DefaultDisplaySettings.getStandardSettings(
+                    PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
+      }
+      
+      DisplaySettings.Builder settingsBuilder = dsTmp.copyBuilder();
+      
+      int counter = 0;
+      if (keep_blue_) {
+          ChannelDisplaySettings.Builder cds = studio_.displays().channelDisplaySettingsBuilder();
+          settingsBuilder.channel(counter, cds.colorCyan().build());
+          counter++;
+      }
+      if (keep_green_) {
+          ChannelDisplaySettings.Builder cds = studio_.displays().channelDisplaySettingsBuilder();
+          settingsBuilder.channel(counter, cds.colorGreen().build());
+          counter++;
+      }
+      if (keep_red_) {
+          ChannelDisplaySettings.Builder cds = studio_.displays().channelDisplaySettingsBuilder();
+          settingsBuilder.channel(counter, cds.color(java.awt.Color.ORANGE).build() );
+          counter++;
+      }
+      if (keep_farRed_) {
+          ChannelDisplaySettings.Builder cds = studio_.displays().channelDisplaySettingsBuilder();
+          settingsBuilder.channel(counter, cds.colorMagenta().build() );
+          counter++;
+      }
+      
+      if (counter == 1) {
+          settingsBuilder.colorModeGrayscale();
+      } else {
+          settingsBuilder.colorModeComposite();  
+      }   
+
+      DataViewer viewer = studio_.displays().getActiveDataViewer();
+      if (viewer != null) {
+            viewer.compareAndSetDisplaySettings(viewer.getDisplaySettings(), settingsBuilder.build());
+      }
+
+      // save display settings to profile
+      DisplaySettings newSettings = settingsBuilder.build();
+      ( (DefaultDisplaySettings) newSettings).saveToProfile(
+                    studio_.profile(), PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
+
       studio_.data().notifyPipelineChanged();
       repaint();
    }
