@@ -284,15 +284,23 @@ public class QuadViewFrame extends JFrame implements ProcessorConfigurator {
           settingsBuilder.colorModeComposite();  
       }   
 
+      // Update active display
       DataViewer viewer = studio_.displays().getActiveDataViewer();
       if (viewer != null) {
-            viewer.compareAndSetDisplaySettings(viewer.getDisplaySettings(), settingsBuilder.build());
-      }
+        DisplaySettings oldSettings;
+        DisplaySettings newSettings;
+        do {
+            oldSettings = viewer.getDisplaySettings();
+            newSettings = settingsBuilder.build();
+        } while (!viewer.compareAndSetDisplaySettings(oldSettings, newSettings));
+       }
 
-      // save display settings to profile
+     // save display settings to profile
       DisplaySettings newSettings = settingsBuilder.build();
-      ( (DefaultDisplaySettings) newSettings).saveToProfile(
+      ( (DefaultDisplaySettings) viewer.getDisplaySettings()).saveToProfile(
                     studio_.profile(), PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
+      ( (DefaultDisplaySettings) viewer.getDisplaySettings()).saveToProfile(
+                    studio_.profile(), PropertyKey.SNAP_LIVE_DISPLAY_SETTINGS.key());
 
       studio_.data().notifyPipelineChanged();
       repaint();

@@ -117,12 +117,17 @@ public class QuadViewProcessor implements Processor {
        } else {
           newAxisOrder = orderedAxes;
        }
-      
-       return summary.copyBuilder()
-                     .channelNames(newNames)
-                     .intendedDimensions(cb.channel(nCh_new).build())
-                     .axisOrder(newAxisOrder)
-                     .build();
+
+       // Return
+       SummaryMetadata.Builder sb = summary.copyBuilder().channelNames(newNames);
+        if (summary.getImageWidth() != null && summary.getImageHeight() != null) {
+            int width = summary.getImageWidth();
+            int height = summary.getImageHeight();
+            width /= 2;
+            height /= 2;
+            sb.imageWidth(width).imageHeight(height);
+        }
+        return sb.build();
    }
 
    @Override
