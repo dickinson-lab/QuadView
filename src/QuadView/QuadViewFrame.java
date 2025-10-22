@@ -247,11 +247,10 @@ public class QuadViewFrame extends JFrame implements ProcessorConfigurator {
       }
       //Update display settings
       DisplaySettings dsTmp = DefaultDisplaySettings.restoreFromProfile(
-                                studio_.profile(), PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
+                                PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
 
       if (dsTmp == null) {
-          dsTmp = DefaultDisplaySettings.getStandardSettings(
-                    PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
+          dsTmp = DefaultDisplaySettings.builder().build();
       }
       
       DisplaySettings.Builder settingsBuilder = dsTmp.copyBuilder();
@@ -297,9 +296,9 @@ public class QuadViewFrame extends JFrame implements ProcessorConfigurator {
 
      // save display settings to profile
     ( (DefaultDisplaySettings) settingsBuilder.build() ).saveToProfile(
-               studio_.profile(), PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
+               PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
     ( (DefaultDisplaySettings) settingsBuilder.build() ).saveToProfile(
-               studio_.profile(), PropertyKey.SNAP_LIVE_DISPLAY_SETTINGS.key()); 
+               PropertyKey.SNAP_LIVE_DISPLAY_SETTINGS.key()); 
     studio_.data().notifyPipelineChanged();
     repaint();
    }

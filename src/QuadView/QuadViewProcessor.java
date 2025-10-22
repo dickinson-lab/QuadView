@@ -100,7 +100,7 @@ public class QuadViewProcessor implements Processor {
       
       // Calculate correct number of channels
       int nCh_start = summary.getIntendedDimensions().getChannel();
-      int nCh_new = nCh_start * channelCounter;
+      int nCh_new = nCh_start + channelCounter - 1;
       Coords.Builder cb = studio_.data().coordsBuilder();
       
       // Fix axis order
@@ -153,7 +153,7 @@ public class QuadViewProcessor implements Processor {
       //int channelIndex = image.getCoords().getChannel();
 
       // Grab selected images
-      int channelCounter = 0;
+      int channelCounter = image.getCoords().getChannel();
       if (keep_blue_) {
          proc.setRoi(0, 0, width, height);
          Coords coords = image.getCoords().copy()
