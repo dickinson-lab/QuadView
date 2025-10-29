@@ -49,6 +49,8 @@ import org.micromanager.display.ChannelDisplaySettings;
 import org.micromanager.display.DataViewer;
 import org.micromanager.display.DisplaySettings;
 import org.micromanager.display.internal.DefaultDisplaySettings;
+import org.micromanager.display.internal.RememberedDisplaySettings;
+import org.micromanager.internal.utils.ReportingUtils;
 import org.micromanager.internal.utils.WindowPositioning;
 
 // Imports for MMStudio internal packages
@@ -246,34 +248,102 @@ public class QuadViewFrame extends JFrame implements ProcessorConfigurator {
          }
       }
       //Update display settings
-      DisplaySettings dsTmp = DefaultDisplaySettings.restoreFromProfile(
-                                PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
+      DisplaySettings.Builder settingsBuilder = null;
+      DisplaySettings dsTmp = studio_.displays().displaySettingsFromProfile(
+                            PropertyKey.ACQUISITION_DISPLAY_SETTINGS.key());
 
-      if (dsTmp == null) {
-          dsTmp = DefaultDisplaySettings.builder().build();
-      }
-      
-      DisplaySettings.Builder settingsBuilder = dsTmp.copyBuilder();
+        if (dsTmp != null) {
+            settingsBuilder = dsTmp.copyBuilder();
+         }
+         if (settingsBuilder == null) {
+            settingsBuilder = DefaultDisplaySettings.builder();
+         }
       
       int counter = 0;
       if (keep_blue_) {
+          // Update settings for current display
           ChannelDisplaySettings.Builder cds = studio_.displays().channelDisplaySettingsBuilder();
           settingsBuilder.channel(counter, cds.colorCyan().build());
+          // Update remembered display settings
+          String curGroup = "";
+          String curChannel = "";
+          try {
+             // if not from cache, we will slow down live mode
+             curGroup = core_.getChannelGroup();
+             curChannel = core_.getCurrentConfigFromCache(curGroup);
+          } catch (Exception e) {
+             ReportingUtils.logError(e, "Error getting current channel");
+          }
+          RememberedDisplaySettings.storeChannel(studio_,
+                                                 curGroup,
+                                                 curChannel,
+                                                 cds.colorCyan().build());
           counter++;
       }
       if (keep_green_) {
+          // Update settings for current display
           ChannelDisplaySettings.Builder cds = studio_.displays().channelDisplaySettingsBuilder();
           settingsBuilder.channel(counter, cds.colorGreen().build());
+          // Update remembered display settings
+          if (!keep_blue_) { //Because we only need to set default to Green if Green is the first channel
+                String curGroup = "";
+                String curChannel = "";
+                try {
+                   // if not from cache, we will slow down live mode
+                   curGroup = core_.getChannelGroup();
+                   curChannel = core_.getCurrentConfigFromCache(curGroup);
+                } catch (Exception e) {
+                   ReportingUtils.logError(e, "Error getting current channel");
+                }
+                RememberedDisplaySettings.storeChannel(studio_,
+                                                       curGroup,
+                                                       curChannel,
+                                                       cds.colorGreen().build());
+          }
           counter++;
       }
       if (keep_red_) {
+          // Update settings for current display
           ChannelDisplaySettings.Builder cds = studio_.displays().channelDisplaySettingsBuilder();
           settingsBuilder.channel(counter, cds.color(java.awt.Color.ORANGE).build() );
+          // Update remembered display settings
+          if (!keep_blue_ && !keep_green_) { //Because we only need to set default to Red if Red is the first channel
+                String curGroup = "";
+                String curChannel = "";
+                try {
+                   // if not from cache, we will slow down live mode
+                   curGroup = core_.getChannelGroup();
+                   curChannel = core_.getCurrentConfigFromCache(curGroup);
+                } catch (Exception e) {
+                   ReportingUtils.logError(e, "Error getting current channel");
+                }
+                RememberedDisplaySettings.storeChannel(studio_,
+                                                       curGroup,
+                                                       curChannel,
+                                                       cds.color(java.awt.Color.ORANGE).build());
+          }
           counter++;
       }
       if (keep_farRed_) {
+          // Update settings for current display
           ChannelDisplaySettings.Builder cds = studio_.displays().channelDisplaySettingsBuilder();
           settingsBuilder.channel(counter, cds.colorMagenta().build() );
+          // Update remembered display settings
+          if (!keep_blue_ && !keep_green_ && !keep_red_) { //Because we only need to set default to Magenta if Far Red is the first channel
+                String curGroup = "";
+                String curChannel = "";
+                try {
+                   // if not from cache, we will slow down live mode
+                   curGroup = core_.getChannelGroup();
+                   curChannel = core_.getCurrentConfigFromCache(curGroup);
+                } catch (Exception e) {
+                   ReportingUtils.logError(e, "Error getting current channel");
+                }
+                RememberedDisplaySettings.storeChannel(studio_,
+                                                       curGroup,
+                                                       curChannel,
+                                                       cds.colorMagenta().build());
+          }
           counter++;
       }
       
